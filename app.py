@@ -15,10 +15,20 @@ app = Flask(__name__)
 MODEL_DIR = "model"
 
 def load_artifacts():
-    """Load the trained model, scaler, and metadata."""
-    model = joblib.load(os.path.join(MODEL_DIR, "house_price_model.pkl"))
-    scaler = joblib.load(os.path.join(MODEL_DIR, "scaler.pkl"))
-    with open(os.path.join(MODEL_DIR, "metadata.json"), "r") as f:
+    """Load the trained model, scaler, and metadata. Auto-train if missing."""
+    model_path = os.path.join(MODEL_DIR, "house_price_model.pkl")
+    scaler_path = os.path.join(MODEL_DIR, "scaler.pkl")
+    meta_path = os.path.join(MODEL_DIR, "metadata.json")
+
+    # If model files are missing, train automatically
+    if not os.path.exists(model_path) or not os.path.exists(scaler_path):
+        print("Model files not found. Training model automatically...")
+        from train_model import train_and_save_model
+        train_and_save_model()
+
+    model = joblib.load(model_path)
+    scaler = joblib.load(scaler_path)
+    with open(meta_path, "r") as f:
         metadata = json.load(f)
     return model, scaler, metadata
 
@@ -88,6 +98,6 @@ def predict():
 
 
 if __name__ == "__main__":
-    print("\n🏠 House Price Prediction App")
-    print("   Open http://127.0.0.1:5000 in your browser\n")
-    app.run(debug=True, port=5000)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port, debug=False)
+
