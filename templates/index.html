@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>House Price Predictor | ML Model (₹ INR)</title>
+    <meta name="description" content="Predict California house prices in Indian Rupees (₹) using a trained Gradient Boosting model with 8 input parameters.">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --bg: #0a0e1a; --surface: rgba(255,255,255,0.04); --surface-hover: rgba(255,255,255,0.08);
+            --border: rgba(255,255,255,0.08); --text: #e2e8f0; --text-dim: #8892a8;
+            --accent: #f97316; --accent-glow: rgba(249,115,22,0.3);
+            --success: #10b981; --success-glow: rgba(16,185,129,0.25);
+            --gradient: linear-gradient(135deg, #f97316, #fb923c, #fdba74);
+        }
+        body { font-family:'Inter',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; overflow-x:hidden; }
+        body::before { content:''; position:fixed; top:-50%; left:-50%; width:200%; height:200%;
+            background:radial-gradient(circle at 30% 20%, rgba(99,102,241,0.08) 0%, transparent 50%),
+                        radial-gradient(circle at 70% 80%, rgba(139,92,246,0.06) 0%, transparent 50%);
+            z-index:0; animation:bgShift 20s ease-in-out infinite alternate; }
+        @keyframes bgShift { to { transform: translate(5%,3%) rotate(2deg); } }
+
+        .container { max-width:1100px; margin:0 auto; padding:2rem 1.5rem; position:relative; z-index:1; }
+
+        /* Header */
+        header { text-align:center; margin-bottom:3rem; }
+        .badge { display:inline-flex; align-items:center; gap:6px; padding:6px 16px; border-radius:50px;
+            background:rgba(99,102,241,0.12); border:1px solid rgba(99,102,241,0.25); color:#a5b4fc;
+            font-size:0.75rem; font-weight:600; letter-spacing:0.05em; text-transform:uppercase; margin-bottom:1rem; }
+        .badge::before { content:''; width:6px; height:6px; border-radius:50%; background:#6366f1;
+            animation:pulse 2s ease-in-out infinite; }
+        @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(0.8)} }
+        h1 { font-size:2.8rem; font-weight:800; background:var(--gradient); -webkit-background-clip:text;
+            -webkit-text-fill-color:transparent; line-height:1.2; margin-bottom:0.5rem; }
+        header p { color:var(--text-dim); font-size:1rem; max-width:500px; margin:0 auto; }
+
+        /* Stats Bar */
+        .stats { display:flex; justify-content:center; gap:2rem; margin-bottom:2.5rem; flex-wrap:wrap; }
+        .stat { text-align:center; padding:1rem 1.5rem; background:var(--surface); border:1px solid var(--border);
+            border-radius:16px; min-width:140px; transition:all 0.3s; }
+        .stat:hover { border-color:rgba(99,102,241,0.3); transform:translateY(-2px); }
+        .stat-value { font-size:1.4rem; font-weight:700; color:#a5b4fc; }
+        .stat-label { font-size:0.7rem; color:var(--text-dim); text-transform:uppercase; letter-spacing:0.08em; margin-top:4px; }
+
+        /* Main Grid */
+        .main-grid { display:grid; grid-template-columns:1fr 380px; gap:2rem; align-items:start; }
+        @media(max-width:860px) { .main-grid { grid-template-columns:1fr; } }
+
+        /* Card */
+        .card { background:var(--surface); border:1px solid var(--border); border-radius:20px;
+            padding:2rem; backdrop-filter:blur(20px); }
+        .card-title { font-size:1.1rem; font-weight:700; margin-bottom:1.5rem; display:flex; align-items:center; gap:8px; }
+        .card-title span { font-size:1.2rem; }
+
+        /* Form */
+        .form-grid { display:grid; grid-template-columns:1fr 1fr; gap:1.2rem; }
+        @media(max-width:500px) { .form-grid { grid-template-columns:1fr; } }
+        .field { position:relative; }
+        .field label { display:block; font-size:0.75rem; font-weight:600; color:var(--text-dim);
+            text-transform:uppercase; letter-spacing:0.06em; margin-bottom:6px; }
+        .field input { width:100%; padding:12px 16px; background:rgba(255,255,255,0.04); border:1px solid var(--border);
+            border-radius:12px; color:var(--text); font-family:inherit; font-size:0.95rem; transition:all 0.25s; outline:none; }
+        .field input:focus { border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-glow); }
+        .field .hint { font-size:0.65rem; color:var(--text-dim); margin-top:4px; }
+
+        /* Button */
+        .btn { width:100%; padding:16px; margin-top:1.5rem; border:none; border-radius:14px; cursor:pointer;
+            font-family:inherit; font-size:1rem; font-weight:700; color:#fff; background:var(--gradient);
+            position:relative; overflow:hidden; transition:all 0.3s; }
+        .btn:hover { transform:translateY(-2px); box-shadow:0 8px 30px var(--accent-glow); }
+        .btn:active { transform:translateY(0); }
+        .btn.loading { pointer-events:none; opacity:0.8; }
+        .btn::after { content:''; position:absolute; inset:0; background:linear-gradient(90deg,transparent,rgba(255,255,255,0.1),transparent);
+            transform:translateX(-100%); }
+        .btn.loading::after { animation:shimmer 1.5s infinite; }
+        @keyframes shimmer { to { transform:translateX(100%); } }
+
+        /* Result */
+        .result-card { background:rgba(16,185,129,0.06); border:1px solid rgba(16,185,129,0.2);
+            border-radius:20px; padding:2rem; text-align:center; opacity:0; transform:translateY(10px);
+            transition:all 0.5s cubic-bezier(0.34,1.56,0.64,1); }
+        .result-card.show { opacity:1; transform:translateY(0); }
+        .result-label { font-size:0.75rem; text-transform:uppercase; letter-spacing:0.1em; color:var(--success); font-weight:600; }
+        .result-price { font-size:2.8rem; font-weight:800; color:#fff; margin:0.5rem 0; }
+        .result-sub { font-size:0.8rem; color:var(--text-dim); }
+
+        /* Importance */
+        .importance-item { display:flex; align-items:center; gap:12px; margin-bottom:0.9rem; }
+        .importance-item .name { font-size:0.78rem; font-weight:500; width:100px; color:var(--text-dim); }
+        .importance-item .bar-bg { flex:1; height:8px; background:rgba(255,255,255,0.06); border-radius:4px; overflow:hidden; }
+        .importance-item .bar { height:100%; border-radius:4px; background:var(--gradient); transition:width 1s cubic-bezier(0.22,1,0.36,1); }
+        .importance-item .val { font-size:0.72rem; font-weight:600; color:#a5b4fc; width:40px; text-align:right; }
+
+        /* Info */
+        .info-section { margin-top:1.5rem; padding-top:1.5rem; border-top:1px solid var(--border); }
+        .info-row { display:flex; justify-content:space-between; padding:6px 0; font-size:0.8rem; }
+        .info-row .label { color:var(--text-dim); }
+        .info-row .value { color:var(--text); font-weight:500; }
+
+        footer { text-align:center; margin-top:3rem; padding-top:1.5rem; border-top:1px solid var(--border);
+            font-size:0.75rem; color:var(--text-dim); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="badge">Live ML Model</div>
+            <h1>House Price Predictor</h1>
+            <p>Powered by a Gradient Boosting model trained on the California Housing dataset from Kaggle</p>
+        </header>
+
+        <div class="stats">
+            <div class="stat">
+                <div class="stat-value">{{ metrics.r2_percent }}</div>
+                <div class="stat-label">R² Accuracy</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value">{{ metrics.mae_inr }}</div>
+                <div class="stat-label">Mean Abs Error (₹)</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value">{{ dataset.total_samples | default('20,640') }}</div>
+                <div class="stat-label">Training Samples</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value">{{ model_info.n_estimators }}</div>
+                <div class="stat-label">Estimators</div>
+            </div>
+        </div>
+
+        <div class="main-grid">
+            <div class="card">
+                <div class="card-title"><span>⚙️</span> Input Parameters</div>
+                <form id="predictForm">
+                    <div class="form-grid">
+                        {% for name in feature_names %}
+                        <div class="field">
+                            <label for="{{ name }}">{{ feature_info[name].label }}</label>
+                            <input type="number" id="{{ name }}" name="{{ name }}"
+                                   value="{{ feature_info[name].mean | round(2) }}"
+                                   step="{{ feature_info[name].step }}"
+                                   min="{{ feature_info[name].min }}"
+                                   max="{{ feature_info[name].max }}" required>
+                            <div class="hint">{{ feature_info[name].description }}</div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <button type="submit" class="btn" id="predictBtn">🏠 Predict House Price (₹)</button>
+                </form>
+            </div>
+
+            <div>
+                <div class="result-card" id="resultCard">
+                    <div class="result-label">Predicted Price</div>
+                    <div class="result-price" id="resultPrice">—</div>
+                    <div class="result-sub">Estimated median house value in Indian Rupees (₹)</div>
+                </div>
+
+                <div class="card" style="margin-top:1.5rem;">
+                    <div class="card-title"><span>📊</span> Feature Importance</div>
+                    {% for name, val in importance.items() %}
+                    <div class="importance-item">
+                        <span class="name">{{ name }}</span>
+                        <div class="bar-bg"><div class="bar" style="width:{{ (val / importance.values() | list | max * 100) | round }}%"></div></div>
+                        <span class="val">{{ (val * 100) | round(1) }}%</span>
+                    </div>
+                    {% endfor %}
+
+                    <div class="info-section">
+                        <div class="info-row"><span class="label">Algorithm</span><span class="value">{{ model_info.algorithm }}</span></div>
+                        <div class="info-row"><span class="label">Dataset</span><span class="value">{{ dataset.name }}</span></div>
+                        <div class="info-row"><span class="label">Source</span><span class="value">{{ dataset.source }}</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer>Built with scikit-learn &amp; Flask — California Housing Dataset (Kaggle)</footer>
+    </div>
+
+    <script>
+        const form = document.getElementById('predictForm');
+        const btn = document.getElementById('predictBtn');
+        const card = document.getElementById('resultCard');
+        const price = document.getElementById('resultPrice');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            btn.classList.add('loading');
+            btn.textContent = '⏳ Predicting...';
+
+            const data = {};
+            new FormData(form).forEach((v, k) => data[k] = parseFloat(v));
+
+            try {
+                const res = await fetch('/predict', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const result = await res.json();
+                if (result.success) {
+                    price.textContent = result.price_formatted;
+                    card.classList.add('show');
+                } else {
+                    price.textContent = 'Error';
+                    card.classList.add('show');
+                }
+            } catch (err) {
+                price.textContent = 'Error';
+                card.classList.add('show');
+            }
+            btn.classList.remove('loading');
+            btn.textContent = '🏠 Predict House Price (₹)';
+        });
+    </script>
+</body>
+</html>

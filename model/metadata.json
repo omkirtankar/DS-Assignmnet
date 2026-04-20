@@ -1,0 +1,109 @@
+{
+  "feature_names": [
+    "MedInc",
+    "HouseAge",
+    "AveRooms",
+    "AveBedrms",
+    "Population",
+    "AveOccup",
+    "Latitude",
+    "Longitude"
+  ],
+  "feature_info": {
+    "MedInc": {
+      "label": "Median Income",
+      "description": "Median income in block group (in \u20b98,50,000s)",
+      "min": 0.4999,
+      "max": 15.0001,
+      "mean": 3.8706710029069766,
+      "step": 0.1
+    },
+    "HouseAge": {
+      "label": "House Age",
+      "description": "Median house age in block group (years)",
+      "min": 1.0,
+      "max": 52.0,
+      "mean": 28.639486434108527,
+      "step": 1
+    },
+    "AveRooms": {
+      "label": "Average Rooms",
+      "description": "Average number of rooms per household",
+      "min": 1.0,
+      "max": 15.0,
+      "mean": 5.428999742190376,
+      "step": 0.1
+    },
+    "AveBedrms": {
+      "label": "Average Bedrooms",
+      "description": "Average number of bedrooms per household",
+      "min": 0.5,
+      "max": 5.0,
+      "mean": 1.096675149606208,
+      "step": 0.1
+    },
+    "Population": {
+      "label": "Population",
+      "description": "Block group population",
+      "min": 3.0,
+      "max": 10000.0,
+      "mean": 1425.4767441860465,
+      "step": 10
+    },
+    "AveOccup": {
+      "label": "Avg Occupancy",
+      "description": "Average number of household members",
+      "min": 1.0,
+      "max": 10.0,
+      "mean": 3.0706551594363742,
+      "step": 0.1
+    },
+    "Latitude": {
+      "label": "Latitude",
+      "description": "Block group latitude",
+      "min": 32.54,
+      "max": 41.95,
+      "mean": 35.63186143410853,
+      "step": 0.01
+    },
+    "Longitude": {
+      "label": "Longitude",
+      "description": "Block group longitude",
+      "min": -124.35,
+      "max": -114.31,
+      "mean": -119.56970445736432,
+      "step": 0.01
+    }
+  },
+  "feature_importance": {
+    "MedInc": 0.5364,
+    "AveOccup": 0.1356,
+    "Longitude": 0.1085,
+    "Latitude": 0.1073,
+    "HouseAge": 0.0451,
+    "AveRooms": 0.0339,
+    "AveBedrms": 0.0167,
+    "Population": 0.0165
+  },
+  "metrics": {
+    "mae": 0.3036,
+    "rmse": 0.4577,
+    "r2": 0.8402,
+    "mae_inr": "\u20b925,80,528",
+    "rmse_inr": "\u20b938,90,154",
+    "r2_percent": "84.0%"
+  },
+  "dataset": {
+    "name": "California Housing",
+    "source": "Kaggle / scikit-learn",
+    "total_samples": 20640,
+    "train_samples": 16512,
+    "test_samples": 4128
+  },
+  "model": {
+    "algorithm": "Gradient Boosting Regressor",
+    "n_estimators": 300,
+    "max_depth": 5,
+    "learning_rate": 0.1
+  }
+}
